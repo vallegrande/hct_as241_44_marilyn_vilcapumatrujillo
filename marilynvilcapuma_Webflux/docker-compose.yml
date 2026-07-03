@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: marilynvilcapuma_webflux:latest      # REEMPLAZABLE: nombre local de la imagen del NUEVO proyecto
+    image: marilynvilcapuma/htc-cliente:latest      # REEMPLAZABLE: nombre local de la imagen del NUEVO proyecto
     container_name: mar-vilt-app      # REEMPLAZABLE: identificador único del contenedor (evita choques con otros proyectos)
     ports:
       - 9096:9096                    # REEMPLAZABLE: puerto host:contenedor del nuevo proyecto
