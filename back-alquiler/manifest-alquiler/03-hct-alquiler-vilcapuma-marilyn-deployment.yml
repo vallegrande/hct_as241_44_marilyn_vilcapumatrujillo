@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hct-alquiler-deployment
+  namespace: hct-alquiler-vilcapuma-marilyn
+  labels:
+    app: hct-alquiler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hct-alquiler
+  template:
+    metadata:
+      labels:
+        app: hct-alquiler
+    spec:
+      containers:
+        - name: hct-alquiler
+          image: marilynvilcapuma/htc-alquiler:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9092
+          env:
+            - name: PORT
+              value: "9092"
+          envFrom:
+            - secretRef:
+                name: hct-alquiler-secret
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

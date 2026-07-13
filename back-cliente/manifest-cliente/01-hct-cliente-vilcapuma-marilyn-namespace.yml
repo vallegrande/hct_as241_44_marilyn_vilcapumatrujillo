@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hct-cliente-vilcapuma-marilyn
+  labels:
+    app: hct-cliente
+    hackathon: as241s5

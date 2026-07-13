@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hct-frontend-deployment
+  namespace: hct-frontend-vilcapuma-marilyn
+  labels:
+    app: hct-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hct-frontend
+  template:
+    metadata:
+      labels:
+        app: hct-frontend
+    spec:
+      containers:
+        - name: hct-frontend
+          image: marilynvilcapuma/htc-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          envFrom:
+            - secretRef:
+                name: hct-frontend-secret
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "250m"

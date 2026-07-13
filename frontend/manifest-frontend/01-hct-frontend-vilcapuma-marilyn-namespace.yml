@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hct-frontend-vilcapuma-marilyn
+  labels:
+    app: hct-frontend
+    hackathon: as241s5

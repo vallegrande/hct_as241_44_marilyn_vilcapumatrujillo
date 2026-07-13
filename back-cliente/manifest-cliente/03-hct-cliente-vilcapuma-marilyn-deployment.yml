@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hct-cliente-deployment
+  namespace: hct-cliente-vilcapuma-marilyn
+  labels:
+    app: hct-cliente
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hct-cliente
+  template:
+    metadata:
+      labels:
+        app: hct-cliente
+    spec:
+      containers:
+        - name: hct-cliente
+          image: marilynvilcapuma/htc-cliente:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9091
+          env:
+            - name: PORT
+              value: "9091"
+          envFrom:
+            - secretRef:
+                name: hct-cliente-secret
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

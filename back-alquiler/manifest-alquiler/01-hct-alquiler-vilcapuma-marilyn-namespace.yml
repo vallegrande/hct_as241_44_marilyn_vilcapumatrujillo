@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hct-alquiler-vilcapuma-marilyn
+  labels:
+    app: hct-alquiler
+    hackathon: as241s5

@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: hct-alquiler
+  r2dbc:
+    url: ${DB_URL:r2dbc:postgresql://ep-noisy-rain-anq1bkk7-pooler.c-6.us-east-1.aws.neon.tech/proyect?sslmode=require&channel_binding=require}
+    username: ${DB_USERNAME:neondb_owner}
+    password: ${DB_PASSWORD:npg_tWwEiO36fqGM}
+    pool:
+      enabled: true
+      initial-size: 1
+      max-size: 10
+      # Neon (plan gratuito) suspende la BD tras ~5 min de inactividad;
+      # se descartan conexiones ociosas antes de que queden muertas
+      max-idle-time: 2m
+      max-validation-time: 5s
+      validation-query: SELECT 1
+
+  webflux:
+    base-path: /
+
+  sql:
+    init:
+      mode: never
+
+services:
+  cliente:
+    url: ${CLIENTE_SERVICE_URL:http://localhost:9091}
+
+server:
+  port: ${PORT:9092}
