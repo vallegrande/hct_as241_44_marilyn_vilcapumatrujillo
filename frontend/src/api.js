@@ -41,6 +41,10 @@ export const alquilerApi = {
     method: 'POST',
     body: JSON.stringify(alquiler)
   }),
+  actualizar: (id, alquiler) => request(`${ALQUILER_API}/api/v1/alquileres/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(alquiler)
+  }),
   activar: (id) => request(`${ALQUILER_API}/api/v1/alquileres/${id}/activar`, { method: 'PATCH' }),
   anular: (id) => request(`${ALQUILER_API}/api/v1/alquileres/${id}/anular`, { method: 'PATCH' })
 }

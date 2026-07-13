@@ -33,6 +33,11 @@ public class AlquilerRest {
         return service.save(alquiler);
     }
 
+    @PutMapping("/{id}")
+    public Mono<Alquiler> update(@PathVariable Long id, @RequestBody Alquiler alquiler) {
+        return service.update(id, alquiler);
+    }
+
     @PatchMapping("/{id}/activar")
     public Mono<ResponseEntity<Alquiler>> activar(@PathVariable Long id) {
         return service.cambiarEstado(id, true)

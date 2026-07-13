@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   UserPlus, Pencil, Trash2, Ban, CheckCircle2, XCircle,
-  Save, X, Loader2, Users, Search
+  Save, X, Loader2, Users, Search, User, CreditCard, Mail, Phone, Car
 } from 'lucide-react'
 import { clienteApi } from '../api.js'
 import { toastOk, toastError, confirmar } from '../alerts.js'
@@ -98,28 +98,59 @@ export default function Clientes() {
 
   return (
     <section>
-      <h2 className="titulo-seccion">
-        {editandoId
-          ? <><Pencil size={18} /> Editar cliente #{editandoId}</>
-          : <><UserPlus size={18} /> Nuevo cliente</>}
-      </h2>
-      <form onSubmit={onSubmit} className="grid-form">
-        <input name="nombres" placeholder="Nombres" value={form.nombres} onChange={onChange} required />
-        <input name="apellidos" placeholder="Apellidos" value={form.apellidos} onChange={onChange} required />
-        <input name="dni" placeholder="DNI" value={form.dni} onChange={onChange} required maxLength="8" />
-        <input name="correo" type="email" placeholder="Correo" value={form.correo} onChange={onChange} required />
-        <input name="celular" placeholder="Celular" value={form.celular} onChange={onChange} required />
-        <input name="licencia" placeholder="Licencia" value={form.licencia} onChange={onChange} required />
-        <div className="form-actions">
-          <button type="submit" className="primary">
-            <Save size={16} /> {editandoId ? 'Actualizar' : 'Registrar'}
-          </button>
-          {editandoId && (
-            <button type="button" onClick={cancelarEdicion}>
-              <X size={16} /> Cancelar
-            </button>
-          )}
+      <form onSubmit={onSubmit} className="form-card">
+        <header className="form-card-header">
+          <h2 className="form-card-titulo">
+            {editandoId
+              ? <><Pencil size={18} /> Editar cliente #{editandoId}</>
+              : <><UserPlus size={18} /> Nuevo cliente</>}
+          </h2>
+          <p className="form-card-subtitulo">
+            {editandoId
+              ? 'Modifica los datos del cliente y guarda los cambios.'
+              : 'Completa los datos personales y de contacto para registrar al cliente.'}
+          </p>
+        </header>
+
+        <div className="form-card-grid">
+          <div className="campo">
+            <label htmlFor="nombres"><User size={14} /> Nombres</label>
+            <input id="nombres" name="nombres" placeholder="Ej. María Fernanda" value={form.nombres} onChange={onChange} required />
+          </div>
+          <div className="campo">
+            <label htmlFor="apellidos"><User size={14} /> Apellidos</label>
+            <input id="apellidos" name="apellidos" placeholder="Ej. Vilcapuma Trujillo" value={form.apellidos} onChange={onChange} required />
+          </div>
+          <div className="campo">
+            <label htmlFor="dni"><CreditCard size={14} /> DNI</label>
+            <input id="dni" name="dni" placeholder="8 dígitos" value={form.dni} onChange={onChange} required maxLength="8" />
+          </div>
+          <div className="campo">
+            <label htmlFor="correo"><Mail size={14} /> Correo electrónico</label>
+            <input id="correo" name="correo" type="email" placeholder="Ej. cliente@correo.com" value={form.correo} onChange={onChange} required />
+          </div>
+          <div className="campo">
+            <label htmlFor="celular"><Phone size={14} /> Celular</label>
+            <input id="celular" name="celular" placeholder="Ej. 987654321" value={form.celular} onChange={onChange} required />
+          </div>
+          <div className="campo">
+            <label htmlFor="licencia"><Car size={14} /> Licencia de conducir</label>
+            <input id="licencia" name="licencia" placeholder="Ej. Q12345678" value={form.licencia} onChange={onChange} required />
+          </div>
         </div>
+
+        <footer className="form-card-footer">
+          <div className="form-actions">
+            {editandoId && (
+              <button type="button" onClick={cancelarEdicion}>
+                <X size={16} /> Cancelar
+              </button>
+            )}
+            <button type="submit" className="primary">
+              <Save size={16} /> {editandoId ? 'Actualizar cliente' : 'Registrar cliente'}
+            </button>
+          </div>
+        </footer>
       </form>
 
       <div className="toolbar">
@@ -138,6 +169,7 @@ export default function Clientes() {
       {cargando ? (
         <p className="cargando"><Loader2 size={18} className="spin" /> Cargando…</p>
       ) : (
+        <div className="tabla-scroll">
         <table>
           <thead>
             <tr>
@@ -186,6 +218,7 @@ export default function Clientes() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </section>
   )

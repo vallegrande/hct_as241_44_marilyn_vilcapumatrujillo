@@ -55,6 +55,41 @@ public class AlquilerImplService implements AlquilerService {
     }
 
     @Override
+    public Mono<Alquiler> update(Long id, Alquiler alquiler) {
+        if (alquiler.getClienteId() == null
+                || alquiler.getDias() == null || alquiler.getDias() <= 0
+                || alquiler.getFechaInicio() == null) {
+            return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "clienteId, dias (> 0) y fechaInicio son obligatorios"));
+        }
+        return repository.findById(id)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "El alquiler " + id + " no existe")))
+                .flatMap(existente -> {
+                    if (!Boolean.TRUE.equals(existente.getEstado())) {
+                        return Mono.error(new ResponseStatusException(HttpStatus.CONFLICT,
+                                "Solo se puede actualizar un alquiler en estado ACTIVO"));
+                    }
+                    return Mono.just(existente);
+                })
+                .flatMap(existente -> validarCliente(alquiler.getClienteId())
+                        .then(Mono.defer(() -> {
+                            alquiler.setId(id);
+                            alquiler.setEstado(existente.getEstado());
+                            alquiler.setFechaFin(alquiler.getFechaInicio().plusDays(alquiler.getDias()));
+                            if (alquiler.getPrecioPorDia() != null) {
+                                alquiler.setTotal(alquiler.getPrecioPorDia()
+                                        .multiply(BigDecimal.valueOf(alquiler.getDias())));
+                            }
+                            if (alquiler.getTotal() == null) {
+                                return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                        "Debe enviar precioPorDia o total"));
+                            }
+                            return repository.save(alquiler);
+                        })));
+    }
+
+    @Override
     public Mono<Alquiler> cambiarEstado(Long id, boolean estado) {
         return repository.findById(id)
                 .flatMap(existente -> {
