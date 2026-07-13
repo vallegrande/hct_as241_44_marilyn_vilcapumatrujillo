@@ -105,20 +105,20 @@ docker login
 ```
 
 ```powershell
-# CLIENTE (desde c:\Users\maril\Desktop\proyect\marilynvilcapuma)
+# CLIENTE (desde c:\Users\maril\Desktop\proyect\hct_as241_44_marilyn_vilcapumatrujillo\back-cliente)
 docker build -t marilynvilcapuma/htc-cliente:latest .
 docker push marilynvilcapuma/htc-cliente:latest
 ```
 > `build` construye la imagen optimizada (multi-etapa con jlink) y `push` la sube a DockerHub para que Kubernetes pueda descargarla.
 
 ```powershell
-# ALQUILER (desde c:\Users\maril\Desktop\proyect\alquiler)
+# ALQUILER (desde c:\Users\maril\Desktop\proyect\hct_as241_44_marilyn_vilcapumatrujillo\back-alquiler)
 docker build -t marilynvilcapuma/htc-alquiler:latest .
 docker push marilynvilcapuma/htc-alquiler:latest
 ```
 
 ```powershell
-# FRONTEND (desde c:\Users\maril\Desktop\proyect\frontend)
+# FRONTEND (desde c:\Users\maril\Desktop\proyect\hct_as241_44_marilyn_vilcapumatrujillo\frontend)
 docker build -t marilynvilcapuma/htc-frontend:latest --build-arg VITE_CLIENTE_API=http://localhost:30091 --build-arg VITE_ALQUILER_API=http://localhost:30092 .
 docker push marilynvilcapuma/htc-frontend:latest
 ```
@@ -133,22 +133,30 @@ docker images
 
 ```powershell
 # Aplicar los manifiestos de cada microservicio (en orden 01→04 automático)
-# Opción A: parada dentro de cada carpeta de microservicio (ruta relativa)
-cd c:\Users\maril\Desktop\proyect\marilynvilcapuma
+# Opción A: parada en la raíz del repositorio (una sola terminal, rutas cortas)
+cd c:\Users\maril\Desktop\proyect\hct_as241_44_marilyn_vilcapumatrujillo
+kubectl apply -f back-cliente/manifest-cliente/
+kubectl apply -f back-alquiler/manifest-alquiler/
+kubectl apply -f frontend/manifest-frontend/
+```
+
+```powershell
+# Opción B: parada dentro de cada carpeta de microservicio (ruta relativa)
+cd c:\Users\maril\Desktop\proyect\hct_as241_44_marilyn_vilcapumatrujillo\back-cliente
 kubectl apply -f manifest-cliente/
 
-cd c:\Users\maril\Desktop\proyect\alquiler
+cd c:\Users\maril\Desktop\proyect\hct_as241_44_marilyn_vilcapumatrujillo\back-alquiler
 kubectl apply -f manifest-alquiler/
 
-cd c:\Users\maril\Desktop\proyect\frontend
+cd c:\Users\maril\Desktop\proyect\hct_as241_44_marilyn_vilcapumatrujillo\frontend
 kubectl apply -f manifest-frontend/
 ```
 
 ```powershell
-# Opción B: desde cualquier ubicación (ruta completa)
-kubectl apply -f "c:\Users\maril\Desktop\proyect\marilynvilcapuma\manifest-cliente\"
-kubectl apply -f "c:\Users\maril\Desktop\proyect\alquiler\manifest-alquiler\"
-kubectl apply -f "c:\Users\maril\Desktop\proyect\frontend\manifest-frontend\"
+# Opción C: desde cualquier ubicación (ruta completa)
+kubectl apply -f "c:\Users\maril\Desktop\proyect\hct_as241_44_marilyn_vilcapumatrujillo\back-cliente\manifest-cliente\"
+kubectl apply -f "c:\Users\maril\Desktop\proyect\hct_as241_44_marilyn_vilcapumatrujillo\back-alquiler\manifest-alquiler\"
+kubectl apply -f "c:\Users\maril\Desktop\proyect\hct_as241_44_marilyn_vilcapumatrujillo\frontend\manifest-frontend\"
 ```
 > `apply -f <carpeta>` crea/actualiza todos los recursos de la carpeta en orden alfabético — por eso los archivos van numerados: namespace → secret → deployment → service. La ruta puede ser relativa (desde donde está tu terminal) o absoluta; también puedes aplicar un solo archivo, p. ej. `kubectl apply -f manifest-cliente\02-...-secret.yml`.
 
@@ -189,18 +197,54 @@ kubectl port-forward svc/hct-frontend-svc 30080:80   -n hct-frontend-vilcapuma-m
 
 ## 5. Actualizar tras un cambio de código
 
+El ciclo siempre es el mismo: **reconstruir → subir → reiniciar el deployment → verificar**. Solo hace falta hacerlo para el/los servicios que cambiaron.
+
 ```powershell
-# 1) Reconstruir y subir la imagen del servicio que cambió
+# CLIENTE (desde back-cliente)
 docker build -t marilynvilcapuma/htc-cliente:latest .
 docker push marilynvilcapuma/htc-cliente:latest
-
-# 2) Reiniciar el deployment para que descargue la imagen nueva
 kubectl rollout restart deployment/hct-cliente-deployment -n hct-cliente-vilcapuma-marilyn
-
-# 3) Confirmar que el pod nuevo levantó
-kubectl get pods -n hct-cliente-vilcapuma-marilyn
+kubectl rollout status deployment/hct-cliente-deployment -n hct-cliente-vilcapuma-marilyn
 ```
-> Funciona porque el deployment usa `imagePullPolicy: Always` con la etiqueta `:latest`.
+
+```powershell
+# ALQUILER (desde back-alquiler)
+docker build -t marilynvilcapuma/htc-alquiler:latest .
+docker push marilynvilcapuma/htc-alquiler:latest
+kubectl rollout restart deployment/hct-alquiler-deployment -n hct-alquiler-vilcapuma-marilyn
+kubectl rollout status deployment/hct-alquiler-deployment -n hct-alquiler-vilcapuma-marilyn
+```
+
+```powershell
+# FRONTEND (desde frontend — no olvidar los --build-arg de Vite)
+docker build -t marilynvilcapuma/htc-frontend:latest --build-arg VITE_CLIENTE_API=http://localhost:30091 --build-arg VITE_ALQUILER_API=http://localhost:30092 .
+docker push marilynvilcapuma/htc-frontend:latest
+kubectl rollout restart deployment/hct-frontend-deployment -n hct-frontend-vilcapuma-marilyn
+kubectl rollout status deployment/hct-frontend-deployment -n hct-frontend-vilcapuma-marilyn
+```
+
+```powershell
+# Confirmar que los pods nuevos quedaron corriendo (Running 1/1)
+kubectl get pods -n hct-cliente-vilcapuma-marilyn
+kubectl get pods -n hct-alquiler-vilcapuma-marilyn
+kubectl get pods -n hct-frontend-vilcapuma-marilyn
+```
+> El `rollout restart` es necesario porque al usar siempre la etiqueta `:latest`, Kubernetes **no detecta solo** que la imagen cambió; el restart fuerza a recrear el pod y, gracias a `imagePullPolicy: Always`, descarga la versión nueva desde DockerHub. `rollout status` espera y confirma que el pod nuevo levantó bien.
+
+### 💡 Buena práctica: versionar con tags en lugar de `:latest`
+
+```powershell
+# 1) Construir y subir con una versión explícita
+docker build -t marilynvilcapuma/htc-frontend:v2 .
+docker push marilynvilcapuma/htc-frontend:v2
+
+# 2) Apuntar el deployment a la nueva versión (no hace falta rollout restart)
+kubectl set image deployment/hct-frontend-deployment hct-frontend=marilynvilcapuma/htc-frontend:v2 -n hct-frontend-vilcapuma-marilyn
+
+# 3) Si algo falla, volver a la versión anterior al instante
+kubectl rollout undo deployment/hct-frontend-deployment -n hct-frontend-vilcapuma-marilyn
+```
+> Con tags versionados (`:v2`, `:v3`...) Kubernetes sí detecta el cambio de imagen y guarda el historial de versiones, lo que permite hacer *rollback* con `rollout undo` si la nueva versión sale mal.
 
 ---
 
@@ -232,9 +276,9 @@ kubectl get endpoints -n hct-cliente-vilcapuma-marilyn
 
 ```powershell
 # Eliminar TODO lo de un microservicio (respeta la carpeta = elimina sus 4 recursos)
-kubectl delete -f "c:\Users\maril\Desktop\proyect\marilynvilcapuma\manifest-cliente\"
-kubectl delete -f "c:\Users\maril\Desktop\proyect\alquiler\manifest-alquiler\"
-kubectl delete -f "c:\Users\maril\Desktop\proyect\frontend\manifest-frontend\"
+kubectl delete -f "c:\Users\maril\Desktop\proyect\hct_as241_44_marilyn_vilcapumatrujillo\back-cliente\manifest-cliente\"
+kubectl delete -f "c:\Users\maril\Desktop\proyect\hct_as241_44_marilyn_vilcapumatrujillo\back-alquiler\manifest-alquiler\"
+kubectl delete -f "c:\Users\maril\Desktop\proyect\hct_as241_44_marilyn_vilcapumatrujillo\frontend\manifest-frontend\"
 ```
 > Borra namespace, secret, deployment y service del microservicio. Es la forma limpia de "empezar de cero": después vuelves a ejecutar `kubectl apply -f`.
 
